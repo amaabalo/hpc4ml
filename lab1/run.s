@@ -5,8 +5,6 @@
 #SBATCH --mem=16GB
 #sbatch --output=lab1.out
 #SBATCH --job-name=lab1
-#SBATCH --mail-type=END
-#SBATCH --mail-user=jma587@nyu.edu
 
 SRCDIR=$HOME/hpc4ml/lab1
 

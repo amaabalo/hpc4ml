@@ -106,16 +106,23 @@ class NeuralNetwork:
 		end = time.monotonic()
 		return (end - start, self.get_checksum())
 
+def main():
+	nn = NeuralNetwork(256 * 256, [4000, 1000])
+	##nn = NeuralNetwork(10 * 10, [40, 10])
+	exec_time, checksum = nn.feed_forward()
+	print("*C3*")
+	print("Time: " + str(exec_time) + " secs")
+	print("Checksum: " + str(checksum))
 
-nn = NeuralNetwork(256 * 256, [4000, 1000])
-exec_time, checksum = nn.feed_forward()
-print("*C3*")
-print("Time: " + str(exec_time) + " secs")
-print("Checksum: " + str(checksum) + " secs")
+	print()
 
+	exec_time2, checksum = nn.feed_forward_w_np()
+	print("*C4*")
+	print("Time: " + str(exec_time2) + " secs")
+	print("Checksum: " + str(checksum))
+	print("Speedup w.r.t. C3: " + str(exec_time / exec_time2))
 
-exec_time2, checksum = nn.feed_forward_w_np()
-print("*C4*")
-print("Time: " + str(exec_time2) + " secs")
-print("Checksum: " + str(checksum) + " secs")
-print("Speedup w.r.t. C3: " + str(exec_time / exec_time2))
+	print()
+
+if __name__ == "__main__":
+	main()
