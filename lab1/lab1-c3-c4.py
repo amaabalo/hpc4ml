@@ -23,9 +23,6 @@ def matmul(A, B):
 
 	return res
 		 
-a = [[1, 2], [3, 4]]
-b = [[0, 1], [1, 0]]
-c = matmul(b, b)
 
 # Return a zero matrix with given dimensions, 
 # or a matrix initialized according to the function f(r, c)
@@ -53,6 +50,7 @@ class NeuralNetwork:
 			self.W.append(W)
 			n_cols = layer_dims[i]
 
+	# Checksum computed as the sum of the output of the last layer
 	def get_checksum(self):
 		if (self.Z == []):
 			return None
@@ -62,6 +60,7 @@ class NeuralNetwork:
 			checksum += v[0]
 		return checksum
 
+	# Feed forward with plain python
 	def feed_forward(self):
 		self.Z = []
 		start = time.monotonic()
@@ -85,6 +84,7 @@ class NeuralNetwork:
 		end = time.monotonic()
 		return (end - start, self.get_checksum())
 
+	# Feed forward with Numpy
 	def feed_forward_w_np(self):
 		self.Z = []
 		start = time.monotonic()

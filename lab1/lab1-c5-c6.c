@@ -28,6 +28,8 @@ double f(int i, int j) {
 	return (0.4 + ((i+j) % 40 - 20) / 40.0);
 }
 
+// Return a zero matrix with the given dimensions, or
+// a matrix initialised according to the function f(r, c);
 double *mat(int rows, int cols, double (*f)(int, int)) {
 	int n = rows * cols;
 	double *m = (double *)malloc(n * sizeof(double));
@@ -45,6 +47,7 @@ double *mat(int rows, int cols, double (*f)(int, int)) {
 	return m;
 }
 
+// Create and initialise a new neural network
 NeuralNetwork *NeuralNetwork_new(int input_rows, int n_layers, int *layer_dims) {
 
 	NeuralNetwork *nn = (NeuralNetwork *)malloc(sizeof(NeuralNetwork));
@@ -75,6 +78,7 @@ NeuralNetwork *NeuralNetwork_new(int input_rows, int n_layers, int *layer_dims) 
 	return nn;
 }
 
+// Destroy neural network.
 void NeuralNetwork_del(NeuralNetwork *nn) {
 	free(nn->input);
 
@@ -89,6 +93,7 @@ void NeuralNetwork_del(NeuralNetwork *nn) {
 	free(nn); //:(
 }
 
+// Get checksum, computed as the sum of the output of the last layer.
 double get_checksum(NeuralNetwork *nn) {
 
 	double sum = 0;
@@ -101,6 +106,7 @@ double get_checksum(NeuralNetwork *nn) {
 	return sum;
 }
 
+// Feed forward with plain C.
 void feed_forward(NeuralNetwork *nn, double *exec_time, double *checksum){
 	int l;
 	int cols_a;
@@ -129,7 +135,6 @@ void feed_forward(NeuralNetwork *nn, double *exec_time, double *checksum){
 				Z[i] = 0;
 			}
 		}
-		//(nn->Z)[l] = Z;
 	}
 
 	clock_gettime(CLOCK_MONOTONIC, &end);	
@@ -138,6 +143,7 @@ void feed_forward(NeuralNetwork *nn, double *exec_time, double *checksum){
 	*checksum = get_checksum(nn);
 }
 
+// Feed forward with MKL.
 void feed_forward_MKL(NeuralNetwork *nn, double *exec_time, double *checksum){
 	int l;
 	int cols_a;
@@ -169,8 +175,6 @@ void feed_forward_MKL(NeuralNetwork *nn, double *exec_time, double *checksum){
 				Z[i] = 0;
 			}
 		}
-
-		//(nn->Z)[l] = Z;
 	}
 	clock_gettime(CLOCK_MONOTONIC, &end);	
 	double time_usec=(((double)end.tv_sec *1000000 + (double)end.tv_nsec/1000) - ((double)start.tv_sec *1000000 + (double)start.tv_nsec/1000));
@@ -178,6 +182,7 @@ void feed_forward_MKL(NeuralNetwork *nn, double *exec_time, double *checksum){
 	*checksum = get_checksum(nn);
 }
 
+// Print a matrix
 void print_matrix(double *A, int rows_a, int cols_a){
 	
 	int r;
@@ -191,7 +196,7 @@ void print_matrix(double *A, int rows_a, int cols_a){
 	}
 }
 
-// Compute AB, return C
+// Compute AB and return a new matrix if C is NULL; otherwise store the result in C and return C.
 double *matmul(double *A, double *B, double *C, int rows_a, int cols_a, int rows_b, int cols_b, int *rows_c, int *cols_c) {
 	if (cols_a != rows_b) {
 		return NULL;
@@ -223,6 +228,8 @@ double *matmul(double *A, double *B, double *C, int rows_a, int cols_a, int rows
 int main() {
 	double C3_exec_time = 34.576209323015064; // Lowest time measured from earlier runs
 
+	//int nn_dims[] = {40, 10};
+	//NeuralNetwork *nn = NeuralNetwork_new(10 * 10, 2, nn_dims);
 	int nn_dims[] = {4000, 1000};
 	NeuralNetwork *nn = NeuralNetwork_new(256 * 256, 2, nn_dims);
 	double exec_time, checksum;
