@@ -1,16 +1,19 @@
 import os
+import sys
 import torch
 import argparse
 import pandas as pd
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
+import time
 from torch.autograd import Variable
 from torch.utils.data import Dataset, DataLoader
 import torch.optim as optim
 from torchvision import transforms
 from PIL import Image
 from sklearn.preprocessing import MultiLabelBinarizer
+
 
 class KaggleDataset(Dataset):
 	def __init__(self, csv_file, root_dir, transform=None):
@@ -65,54 +68,142 @@ class NeuralNetwork(nn.Module):
 		return out
 
 
-def precision_at_k(k, output, label):
+def precision_at_k(k, output, label, cuda_enabled):
 	vals, indices = output.topk(k)
 	
 	count = 0.0
 	for i, idx in enumerate(indices):
-		corresponding = label[i].index_select(0, idx.data)
+		index = idx
+		if cuda_enabled:
+			index = idx.cpu()
+		corresponding = label[i].index_select(0, index.data)
 		count += corresponding.sum()
 
 	precision = count / (k * output.size(0))
-	return precision
+	return precision.item()
 
-	
 
 def main(): 
-	'''
-	parser = argparse.ArgumentParser(description='Training in PyTorch')
-	parser.add_argument('--disable-cuda', action='store_true', help='Disable CUDA')
+	
+	parser = argparse.ArgumentParser(description='Lab 2: Training in PyTorch')
+	parser.add_argument("csv_path", help = "Path to the csv file.")
+	parser.add_argument("dataset_directory", help = "Path to the dataset directory.")
+	parser.add_argument("--n_workers", type = int, default = 1, help = "The number of workers to use for the dataloader.")
+	parser.add_argument('--enable-cuda', action='store_true', help='Enable CUDA.', default = False)
+	parser.add_argument("--optimiser", default = "sgd", choices = ['sgd', 'sgdwithnesterov', 'adagrad', 'adadelta', 'adam'], help = "The optimiser to use.")
+
 	args = parser.parse_args()
 	args.device = None
-	print (torch.cuda.is_available())
-	if not args.disable_cuda and torch.cuda.is_available():
-		args.device = torch.device('cuda')
+	
+	cuda_enabled = False
+	print("Torch version " + torch.__version__)
+	print("Python version " + sys.version)
+	if args.enable_cuda and torch.cuda.is_available():
 		print("Running on GPU")
+		args.device = torch.device("cuda:0")
+		print("Number of GPUs: " + str(torch.cuda.device_count()))
+		cuda_enabled = True
 	else:
-		args.device = torch.device('cpu')
+		if (args.enable_cuda):
+			print("--cuda-enable specified but torch.cuda.is_available() = false.")
 		print("Running on CPU.")
-	'''
+		args.device = torch.device("cpu")
+	
+	print(args.device)
+
+	
+	print("Number of workers: " + str(args.n_workers) + "; Optimiser: " + args.optimiser)
+
+	if (cuda_enabled):
+		n = NeuralNetwork().cuda()
+	else:
+		n = NeuralNetwork()
+
+	optimiser = None
+	opt = args.optimiser.lower()
+	if (opt == "sgd"):
+		optimiser = optim.SGD(n.parameters(), lr=0.01, momentum=0.9)
+	elif (opt == "sgdwithnesterov"):
+		optimiser = optim.SGD(n.parameters(), lr=0.01, momentum=0.9, nesterov = True)
+	elif (opt == "adagrad"):
+		optimiser = optim.Adagrad(n.parameters())
+	elif (opt == "adadelta"):
+		optimiser = optim.Adadelta(n.parameters())
+	elif (opt == "adam"):
+		optimiser = optim.Adam(n.parameters())		
+	
 	composed = transforms.Compose([transforms.Resize(32), transforms.ToTensor()])
-	kd = KaggleDataset("/scratch/am9031/CSCI-GA.3033-022/lab2/kaggleamazon/train.csv", "/scratch/am9031/CSCI-GA.3033-022/lab2/kaggleamazon/train-jpg", composed)
-	dataloader = DataLoader(kd, batch_size = 250, num_workers = 1)
-	n = NeuralNetwork()
+	kd = KaggleDataset(args.csv_path, args.dataset_directory, composed)
+	dataloader = DataLoader(kd, batch_size = 250, num_workers = args.n_workers)
+
 	criterion = nn.BCELoss()
-	optimiser = optim.SGD(n.parameters(), lr=0.01, momentum=0.9)
 
-	for epoch in range(5):
+	n_epochs = 5
+	# Aggregate time for each epoch
+	total_time = 0.0
+
+	# Overall total time spent waiting for the Dataloader
+	overall_total_load_time = 0.0
+	print("Epoch\tAvg Load Time\t\tAvg Minibatch Comp Time\t\tAvg Loss\t\t\t\tAvg p@1\t\t\t\tAvg p@3")
+
+	for epoch in range(n_epochs):
 		n.train()
-		for i, data in enumerate(dataloader, 0):
-			optimiser.zero_grad()
-			outputs = n.forward(Variable(data["image"]))
 
-			loss = criterion(outputs, Variable(data["labels"]))
+		# Aggregate time spent waiting to load the batchfrom the DataLoader during the training
+		total_load_time = 0.0
+		# Aggregate time for a mini-batch computation (dataloading and NN forward/backward)
+		total_minibatch_computation_time = 0.0
+		epoch_loss = 0.0
+		epoch_p_at_1 = 0.0
+		epoch_p_at_3 = 0.0
+
+		load_start = time.monotonic()
+		for i, data in enumerate(dataloader, 0):
+			load_end = time.monotonic()
+			inputs = Variable(data["image"])
+			labels = Variable(data["labels"])
+
+			if cuda_enabled:
+				inputs = inputs.cuda()
+				labels = labels.cuda()
+	
+			optimiser.zero_grad()
+			outputs = n.forward(inputs)
+
+			loss = criterion(outputs, labels)
 			loss.backward()
 			optimiser.step()
-			loss_val = loss.data[0]
+			total_minibatch_computation_time += (time.monotonic() - load_start)
 		
+			total_load_time += (load_end - load_start)
 			# For each minibatch calculate the loss value, the precision@1 and precision@3 of the predictions.	
-			print(precision_at_k(3, outputs, data["labels"]))
-			exit()
+			precision_at_3 = precision_at_k(3, outputs, data["labels"], cuda_enabled)
+			precision_at_1 = precision_at_k(1, outputs, data["labels"], cuda_enabled)
+			
+
+			epoch_p_at_1 += precision_at_1
+			epoch_p_at_3 += precision_at_3
+
+			loss_val = loss.item()
+
+			epoch_loss += loss_val
+			load_start = time.monotonic()
+		
+		overall_total_load_time += total_load_time
+		avg_batch_load_time = total_load_time / len(dataloader)
+		avg_loss_this_epoch = epoch_loss / len(dataloader)
+		avg_p_at_1_this_epoch = epoch_p_at_1 / len(dataloader)
+		avg_p_at_3_this_epoch = epoch_p_at_3 / len(dataloader)
+		avg_minibatch_computation_time = total_minibatch_computation_time / len(dataloader)
+	
+		print(str(epoch + 1) + "\t\t" + str(avg_batch_load_time) + "\t" + str(avg_minibatch_computation_time) + "\t\t\t" + str(avg_loss_this_epoch) + "\t\t" + str(avg_p_at_1_this_epoch) + "\t\t" + str(avg_p_at_3_this_epoch))
+		
+		total_time += total_minibatch_computation_time
+	
+	avg_time_per_epoch = total_time / n_epochs
+	print("Average time per epoch: " + str(avg_time_per_epoch))
+	print("Overall total load time: " + str(overall_total_load_time))
+	print("\n")
 
 
 if __name__ == "__main__":
