@@ -14,7 +14,7 @@ from torchvision import transforms
 from PIL import Image
 from sklearn.preprocessing import MultiLabelBinarizer
 
-
+# Needed for C1
 class KaggleDataset(Dataset):
 	def __init__(self, csv_file, root_dir, transform=None):
 		self.root_dir = root_dir
@@ -36,6 +36,7 @@ class KaggleDataset(Dataset):
 		sample = {'image': image, 'labels': labels}
 		return sample
 
+# Needed for C1
 class NeuralNetwork(nn.Module):
 	def __init__(self):
 		super(NeuralNetwork, self).__init__()
@@ -67,7 +68,7 @@ class NeuralNetwork(nn.Module):
 		out = self.layer4(out)
 		return out
 
-
+# Needed for C5, C1
 def precision_at_k(k, output, label, cuda_enabled):
 	vals, indices = output.topk(k)
 	
@@ -88,9 +89,9 @@ def main():
 	parser = argparse.ArgumentParser(description='Lab 2: Training in PyTorch')
 	parser.add_argument("csv_path", help = "Path to the csv file.")
 	parser.add_argument("dataset_directory", help = "Path to the dataset directory.")
-	parser.add_argument("--n_workers", type = int, default = 1, help = "The number of workers to use for the dataloader.")
-	parser.add_argument('--enable-cuda', action='store_true', help='Enable CUDA.', default = False)
-	parser.add_argument("--optimiser", default = "sgd", choices = ['sgd', 'sgdwithnesterov', 'adagrad', 'adadelta', 'adam'], help = "The optimiser to use.")
+	parser.add_argument("--n_workers", type = int, default = 1, help = "The number of workers to use for the dataloader.") # Needed for C3
+	parser.add_argument('--enable-cuda', action='store_true', help='Enable CUDA.', default = False) # Needed for C5
+	parser.add_argument("--optimiser", default = "sgd", choices = ['sgd', 'sgdwithnesterov', 'adagrad', 'adadelta', 'adam'], help = "The optimiser to use.") # Needed for C5
 
 	args = parser.parse_args()
 	args.device = None
@@ -100,7 +101,7 @@ def main():
 	print("Python version " + sys.version)
 	if args.enable_cuda and torch.cuda.is_available():
 		print("Running on GPU")
-		args.device = torch.device("cuda:0")
+		args.device = torch.device("cuda:0") # Needed for C5
 		print("Number of GPUs: " + str(torch.cuda.device_count()))
 		cuda_enabled = True
 	else:
@@ -115,12 +116,13 @@ def main():
 	print("Number of workers: " + str(args.n_workers) + "; Optimiser: " + args.optimiser)
 
 	if (cuda_enabled):
-		n = NeuralNetwork().cuda()
+		n = NeuralNetwork().cuda() # Needed for C5
 	else:
 		n = NeuralNetwork()
 
 	optimiser = None
 	opt = args.optimiser.lower()
+	# Needed for C5.
 	if (opt == "sgd"):
 		optimiser = optim.SGD(n.parameters(), lr=0.01, momentum=0.9)
 	elif (opt == "sgdwithnesterov"):
@@ -142,7 +144,7 @@ def main():
 	# Aggregate time for each epoch
 	total_time = 0.0
 
-	# Overall total time spent waiting for the Dataloader
+	# Overall total time spent waiting for the Dataloader (Needed for C3)
 	overall_total_load_time = 0.0
 	print("Epoch\tAvg Load Time\t\tAvg Minibatch Comp Time\t\tAvg Loss\t\t\t\tAvg p@1\t\t\t\tAvg p@3")
 
@@ -176,31 +178,28 @@ def main():
 			total_minibatch_computation_time += (time.monotonic() - load_start)
 		
 			total_load_time += (load_end - load_start)
-			# For each minibatch calculate the loss value, the precision@1 and precision@3 of the predictions.	
+			# For each minibatch calculate the loss value, the precision@1 and precision@3 of the predictions.	# Needed for C5
 			precision_at_3 = precision_at_k(3, outputs, data["labels"], cuda_enabled)
 			precision_at_1 = precision_at_k(1, outputs, data["labels"], cuda_enabled)
-			
-
 			epoch_p_at_1 += precision_at_1
 			epoch_p_at_3 += precision_at_3
-
 			loss_val = loss.item()
 
 			epoch_loss += loss_val
 			load_start = time.monotonic()
 		
 		overall_total_load_time += total_load_time
-		avg_batch_load_time = total_load_time / len(dataloader)
+		avg_batch_load_time = total_load_time / len(dataloader) # Needed for C2
 		avg_loss_this_epoch = epoch_loss / len(dataloader)
 		avg_p_at_1_this_epoch = epoch_p_at_1 / len(dataloader)
 		avg_p_at_3_this_epoch = epoch_p_at_3 / len(dataloader)
-		avg_minibatch_computation_time = total_minibatch_computation_time / len(dataloader)
+		avg_minibatch_computation_time = total_minibatch_computation_time / len(dataloader) # Needed for C2
 	
 		print(str(epoch + 1) + "\t\t" + str(avg_batch_load_time) + "\t" + str(avg_minibatch_computation_time) + "\t\t\t" + str(avg_loss_this_epoch) + "\t\t" + str(avg_p_at_1_this_epoch) + "\t\t" + str(avg_p_at_3_this_epoch))
 		
 		total_time += total_minibatch_computation_time
 	
-	avg_time_per_epoch = total_time / n_epochs
+	avg_time_per_epoch = total_time / n_epochs # Needed for C2, C5
 	print("Average time per epoch: " + str(avg_time_per_epoch))
 	print("Overall total load time: " + str(overall_total_load_time))
 	print("\n")
