@@ -1,0 +1,172 @@
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 1; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		2.6395111591593983	2.9407857624115423
+2		2.782875019983233	3.078854492601628
+3		3.47975501268326	3.777815946051851
+4		3.4884422701744673	3.7817483379583186
+5		3.5701392150561637	3.8539399707068998
+Average time per epoch: 418.3954682335258
+Average loss per epoch: 36.26394097208977
+average precision@1: 0.0
+average precision@3: 0.0
+Overall total load time: 1915.2867212467827
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 0; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		2.8716925529724295	3.1177410589531065
+2		3.119665937141205	3.3725418783181036
+3		3.620192308021554	3.855399656361745
+4		3.5844536731989742	3.8240498283994384
+5		3.780790784939503	4.023814245988615
+Average time per epoch: 436.6451200325042
+Average loss per epoch: 33.99754314720631
+average precision@1: 0.0
+average precision@3: 0.0
+Overall total load time: 2037.21543075284
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 1; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		3.9560397003234056	4.2444743986047495
+2		3.8928420589033825	4.180843876814469
+3		3.6978621834539807	3.9969120026449674
+4		3.534070134155142	3.8282987648660005
+5		3.044359274425854	3.3333679044114737
+Average time per epoch: 470.0135267361999
+Average loss per epoch: 34.97468907237053
+average precision@1: tensor(0.9139)
+average precision@3: tensor(0.6353)
+Overall total load time: 2175.0208021514118
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 2; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		1.3600525485002435	1.6981369861052371
+2		1.1570407224469819	1.5184579178225248
+3		1.3893726736345948	1.736065244860947
+4		1.2671415640157648	1.6250306390497522
+5		1.1999254329983766	1.5572024827784239
+Average time per epoch: 195.23743849480525
+Average loss per epoch: 34.94978589117527
+average precision@1: tensor(0.9039)
+average precision@3: tensor(0.6285)
+Overall total load time: 764.8239529915154
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 4; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.42211535609094425	0.8809775515925139
+2		0.4386897471655781	0.894519219508705
+3		0.429736119225466	0.8581333313137293
+4		0.42983998062942796	0.8695441988335612
+5		0.4687403994884031	0.9017089482823697
+Average time per epoch: 105.7171979887411
+Average loss per epoch: 35.15401955544949
+average precision@1: tensor(0.9153)
+average precision@3: tensor(0.6311)
+Overall total load time: 262.69459231197834
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 8; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.03333580516822015	0.6302642480897096
+2		0.052915750339161606	0.6284805224277079
+3		0.04488545465671147	0.6325673426850699
+4		0.07619553687982261	0.6533636056468822
+5		0.07407481528740997	0.6184108320235585
+Average time per epoch: 75.91407722095028
+Average loss per epoch: 34.80325710773468
+average precision@1: tensor(0.9065)
+average precision@3: tensor(0.6271)
+Overall total load time: 33.7688834797591
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 12; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.030415241389224926	0.5984658249731486
+2		0.03349928424771254	0.5997891044826247
+3		0.03673343398453047	0.6087062549234058
+4		0.04532584465341642	0.604286844698557
+5		0.03206640906088675	0.6198078276705928
+Average time per epoch: 72.74534056195989
+Average loss per epoch: 34.58049448132515
+average precision@1: tensor(0.9116)
+average precision@3: tensor(0.6302)
+Overall total load time: 21.364825600292534
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 16; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.03730111822175483	0.5649342614109628
+2		0.035455206692374	0.6057290656026453
+3		0.036978435578445594	0.6088569765832896
+4		0.03701006392172227	0.602977222429278
+5		0.04219669744294758	0.605203532470235
+Average time per epoch: 71.70482540391386
+Average loss per epoch: 34.86356467008591
+average precision@1: tensor(0.9052)
+average precision@3: tensor(0.6274)
+Overall total load time: 22.672982622869313
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 20; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.04110696151231726	0.5826718774507753
+2		0.04799863393806542	0.5545124800565342
+3		0.04557334192407628	0.5381540837581269
+4		0.0729656245210208	0.5221650534852719
+5		0.04197160511976108	0.6183770513200822
+Average time per epoch: 67.58113310569897
+Average loss per epoch: 35.15733196735382
+average precision@1: tensor(0.9018)
+average precision@3: tensor(0.6258)
+Overall total load time: 29.9539400418289
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 24; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.047134179365821184	0.6055661142144042
+2		0.049619865603744984	0.5911343574523926
+3		0.04944869688867281	0.5771648638222057
+4		0.04788257099765663	0.569081106238688
+5		0.04823949245425562	0.6084732625090207
+Average time per epoch: 70.83407290168107
+Average loss per epoch: 34.48204917013645
+average precision@1: tensor(0.9104)
+average precision@3: tensor(0.6301)
+Overall total load time: 29.078976637218148
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 28; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.07255905931039403	0.5003749836391459
+2		0.08147808421636	0.49701180976893133
+3		0.07755140584583084	0.4909026521840133
+4		0.05325568716507405	0.5594210245568926
+5		0.05662533331972857	0.5985356319424076
+Average time per epoch: 63.50990645019338
+Average loss per epoch: 35.31124622821808
+average precision@1: tensor(0.9051)
+average precision@3: tensor(0.6292)
+Overall total load time: 40.9763483828865
+Torch version 0.4.1.post2
+Running on CPU.
+Number of workers: 32; Optimiser: sgd
+Epoch	Avg Load Time	Avg Minibatch Comp Time
+1		0.0690755933135127	0.5802860669248427
+2		0.07674700835874924	0.5046479913289659
+3		0.07573116012305642	0.5110016745980829
+4		0.0737434130278416	0.520830292138271
+5		0.07130826347274706	0.5105665522743947
+Average time per epoch: 63.055981854349376
+Average loss per epoch: 34.62153607010841
+average precision@1: tensor(0.9098)
+average precision@3: tensor(0.6302)
+Overall total load time: 43.992652595508844
+slurmstepd: error: Exceeded step memory limit at some point.
+slurmstepd: error: This may or may not result in some failure. The SLURM utilizes Linux cgroups for resource containment. For reference please read the explanation in the bug report: https://bugs.schedmd.com/show_bug.cgi?id=3214#c4
+slurmstepd: error: Exceeded job memory limit at some point.
+slurmstepd: error: This may or may not result in some failure. The SLURM utilizes Linux cgroups for resource containment. For reference please read the explanation in the bug report: https://bugs.schedmd.com/show_bug.cgi?id=3214#c4
