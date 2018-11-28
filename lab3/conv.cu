@@ -42,11 +42,16 @@ __global__ void C1 (double *I0, double *F, double *O, int C, int W, int H, int W
 		int xy_linear = x * W + y;
 		for (int k = 0; k < K; k++) {
 			double val = 0.0;
+			int A_f = k * f_k_stride;
 			for (int c = 0; c < C; c++) {
+				int A = c * c_stride;
+				int B_f = A_f + c * f_c_stride;
 				for (int j = 0; j < FH; j++) {
+					int B = A + y + j;
+					int C_f = B_f + (FH - 1 - j);
 					for (int i = 0; i < FW; i++) {
-						int I0_index = c * c_stride + (x + i) * W0 + (y + j);
-						int F_index = k * f_k_stride + c * f_c_stride + (FW - 1 - i) * FW + (FH - 1 - j);
+						int I0_index = B + (x + i) * W0;
+						int F_index = C_f + (FW - 1 - i) * FW;
 						val += F[F_index] * I0[I0_index];
 					}
 				}
@@ -75,7 +80,7 @@ __global__ void C2 (double *I0, double *F, double *O, int C, int W, int H, int W
 		extern __shared__ double tile[];
 		for (int c = 0; c < C; c++) {
 			for (int i = 0; i < FW + blockDim.x - 1; i += FW) {
-				int tx =threadIdx.x + i;
+				int tx = threadIdx.x + i;
 				for (int j = 0; j < FH + blockDim.y - 1; j += FH) {
 					int ty = threadIdx.y + j;
 					if (tx < TH && ty < TW){
@@ -108,7 +113,7 @@ __global__ void C2 (double *I0, double *F, double *O, int C, int W, int H, int W
 }
 
 // C3 Convolution with CUDNN
-void C3 (double *I, double *F, double *O, int C, int W, int H, int W0, int H0, int K, int FW, int FH, struct timespec *start, struct timespec *end) {
+void C3 (double *I, double *F, double *O, int C, int W, int H, int K, int FW, int FH, struct timespec *start, struct timespec *end) {
 	// Create the handle
 	cudnnHandle_t cudnn;
 	CUDNN_CALL(cudnnCreate(&cudnn));
@@ -181,14 +186,8 @@ void run_version (int version, int block_size, double *I_dev, double *I0_dev, do
 		}
 		cudaDeviceSynchronize();
 		clock_gettime(CLOCK_MONOTONIC, &end);
-		cudaError_t error = cudaGetLastError();
-  		if(error != cudaSuccess)
-  		{
-    		printf("CUDA error: %s\n", cudaGetErrorString(error));
-    		exit(-1);
-  		}
 	} else if (version == 3) {
-		C3 (I_dev, F_dev, O_dev, C, W, H, W0, H0, K, FW, FH, &start, &end);
+		C3 (I_dev, F_dev, O_dev, C, W, H, K, FW, FH, &start, &end);
 	}
 	int O_sz = K * W * H * sizeof(double);
 	CUDA_CALL(cudaMemcpy(O_host, O_dev, O_sz, cudaMemcpyDeviceToHost));
@@ -260,19 +259,20 @@ int main(int argc, char *argv[]) {
 	double *I0_dev;
 	double *F_dev;
 	double *O_dev;
-	CUDA_CALL(cudaMalloc((void **)&I_dev, I_sz));
 	CUDA_CALL(cudaMalloc((void **)&I0_dev, I0_sz));
 	CUDA_CALL(cudaMalloc((void **)&F_dev, F_sz));
 	CUDA_CALL(cudaMalloc((void **)&O_dev, O_sz));
 
 	// Copy tensor and filters to the device
-	CUDA_CALL(cudaMemcpy(I_dev, I, I_sz, cudaMemcpyHostToDevice));
 	CUDA_CALL(cudaMemcpy(I0_dev, I0, I0_sz, cudaMemcpyHostToDevice));
 	CUDA_CALL(cudaMemcpy(F_dev, F, F_sz, cudaMemcpyHostToDevice));
 	
 	// C1, C2, C3
 	run_version (1, 8, NULL, I0_dev, F_dev, O_dev, O, C, W, H, W0, H0, K, FW, FH);
 	run_version (2, 8, NULL, I0_dev, F_dev, O_dev, O, C, W, H, W0, H0, K, FW, FH);
+	CUDA_CALL(cudaFree(I0_dev));
+	CUDA_CALL(cudaMalloc((void **)&I_dev, I_sz));
+	CUDA_CALL(cudaMemcpy(I_dev, I, I_sz, cudaMemcpyHostToDevice));
 	run_version (3, 0, I_dev, NULL, F_dev, O_dev, O, C, W, H, W0, H0, K, FW, FH);
 
 	// Free all memory on host
@@ -283,7 +283,6 @@ int main(int argc, char *argv[]) {
 
 	// Free all memory on device
 	CUDA_CALL(cudaFree(I_dev));
-	CUDA_CALL(cudaFree(I0_dev));
 	CUDA_CALL(cudaFree(F_dev));
 	CUDA_CALL(cudaFree(O_dev));
 	return 0;
