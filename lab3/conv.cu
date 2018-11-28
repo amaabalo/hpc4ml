@@ -72,15 +72,13 @@ __global__ void C2 (double *I0, double *F, double *O, int C, int W, int H, int W
 		int TH = FW + blockDim.x - 1;
 		int TW = FH + blockDim.y - 1;
 		// Allocate and initialise shared memory
-		extern __shared__ float tile[];
+		extern __shared__ double tile[];
 		for (int c = 0; c < C; c++) {
 			for (int i = 0; i < FW + blockDim.x - 1; i += FW) {
+				int tx =threadIdx.x + i;
 				for (int j = 0; j < FH + blockDim.y - 1; j += FH) {
-					int tx =threadIdx.x + i;
 					int ty = threadIdx.y + j;
-					int kx = (blockIdx.x * blockDim.x) + tx;
-					int ky = (blockIdx.y * blockDim.y) + ty;
-					if (tx < TH && ty < TW && kx < H && ky < W){
+					if (tx < TH && ty < TW){
 						int x1 = x + i;
 						int y1 = y + j;
 						int l = c * c_stride + x1 * W0 + y1;
@@ -98,9 +96,7 @@ __global__ void C2 (double *I0, double *F, double *O, int C, int W, int H, int W
 				for (int j = 0; j < FH; j++) {
 					for (int i = 0; i < FW; i++) {
 						int tile_index = c * TH * TW + (threadIdx.x + i) * TW + (threadIdx.y + j);
-						int I0_index = c * c_stride + (x + i) * W0 + (y + j);
 						int F_index = k * f_k_stride + c * f_c_stride + (FW - 1 - i) * FW + (FH - 1 - j);
-//						assert(tile[tile_index] == I0[I0_index]);
 						val += F[F_index] * tile[tile_index];
 					}
 				}
